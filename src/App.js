@@ -76,6 +76,7 @@ function calculateWinner(squares) {
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [ascending, setAscending] = useState(false);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -110,6 +111,10 @@ export default function Game() {
     }
   });
 
+  if (ascending) {
+    moves.reverse();
+  }
+
   return (
     <div className="game">
       <div className="game-board">
@@ -117,6 +122,9 @@ export default function Game() {
       </div>
       <div className="game-info">
         <ol>{moves}</ol>
+      </div>
+      <div>
+        <button onClick={() => setAscending(!ascending)}>Toggle order</button>
       </div>
     </div>
   );
