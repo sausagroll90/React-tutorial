@@ -1,14 +1,26 @@
 import { useState } from "react";
 
-function Square({ value, onSquareClick }) {
+function Square({ winning, value, onSquareClick }) {
   return (
-    <button className="square" onClick={onSquareClick}>
+    <button className="square" winning={winning} onClick={onSquareClick}>
       {value}
     </button>
   );
 }
 
 function Board({ xIsNext, squares, onPlay }) {
+  const coords = [
+    [1, 3],
+    [2, 3],
+    [3, 3],
+    [1, 2],
+    [2, 2],
+    [3, 2],
+    [1, 3],
+    [2, 3],
+    [3, 3],
+  ];
+
   function handleClick(i) {
     if (squares[i] || calculateWinner(squares)) {
       return;
@@ -19,15 +31,20 @@ function Board({ xIsNext, squares, onPlay }) {
     } else {
       nextSquares[i] = "O";
     }
+    nextSquares[9] = coords[i];
     onPlay(nextSquares);
   }
 
-  const winner = calculateWinner(squares);
+  const winningSquares = calculateWinner(squares);
   let status;
-  if (winner) {
-    status = "Winner: " + winner;
+  if (winningSquares) {
+    status = "Winner: " + squares[winningSquares[0]];
   } else {
-    status = "Next player: " + (xIsNext ? "X" : "O");
+    if (!squares.includes(null)) {
+      status = "It's a tie!";
+    } else {
+      status = "Next player: " + (xIsNext ? "X" : "O");
+    }
   }
 
   const rows = [];
@@ -35,12 +52,22 @@ function Board({ xIsNext, squares, onPlay }) {
   for (let row = 0; row < 3; row++) {
     rowSquares = [];
     for (let rowSquare = 0; rowSquare < 3; rowSquare++) {
-      rowSquares.push(
-        <Square
-          value={squares[3 * row + rowSquare]}
-          onSquareClick={() => handleClick(3 * row + rowSquare)}
-        />
-      );
+      if (winningSquares && winningSquares.includes(3 * row + rowSquare)) {
+        rowSquares.push(
+          <Square
+            winning="yes"
+            value={squares[3 * row + rowSquare]}
+            onSquareClick={() => handleClick(3 * row + rowSquare)}
+          />
+        );
+      } else {
+        rowSquares.push(
+          <Square
+            value={squares[3 * row + rowSquare]}
+            onSquareClick={() => handleClick(3 * row + rowSquare)}
+          />
+        );
+      }
     }
     rows.push(<div className="board-row">{rowSquares}</div>);
   }
@@ -67,14 +94,14 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return lines[i];
     }
   }
   return null;
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([Array(10).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [ascending, setAscending] = useState(false);
   const xIsNext = currentMove % 2 === 0;
@@ -95,11 +122,11 @@ export default function Game() {
   const moves = history.map((squares, move) => {
     let description;
     if (move === currentMove) {
-      description = "You are at move #" + move;
+      description = "You are at move #" + move + " (" + squares[9] + ")";
       return <li key={move}>{description}</li>;
     } else {
       if (move > 0) {
-        description = "Go to move #" + move;
+        description = "Go to move #" + move + " (" + squares[9] + ")";
       } else {
         description = "Go to game start";
       }
